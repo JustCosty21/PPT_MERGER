@@ -1,10 +1,7 @@
 import org.apache.poi.xslf.usermodel.XMLSlideShow;
 import org.apache.poi.xslf.usermodel.XSLFSlide;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,10 +47,23 @@ public class Main {
             }
         }
 
-        String allLecturesCombined = "allLecturesCombined.pptx";
+        String outputLocation;
+        do {
+            System.out.println("Select a location to place the file");
+            outputLocation = sc.nextLine();
 
-        //creating the file object
-        FileOutputStream out = new FileOutputStream(allLecturesCombined);
+        } while(outputLocation.equals(""));
+
+        String allLecturesCombined = outputLocation + "/" + "allLecturesCombined.pptx";
+
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(allLecturesCombined);
+        } catch (FileNotFoundException e) {
+            System.out.println("Folder does not exist or something went wrong.");
+
+            System.exit(0);
+        }
 
         // saving the changes to a file
         ppt.write(out);
