@@ -1,3 +1,5 @@
+import com.aspose.slides.Presentation;
+import com.aspose.slides.SaveFormat;
 import org.apache.poi.xslf.usermodel.XMLSlideShow;
 import org.apache.poi.xslf.usermodel.XSLFSlide;
 
@@ -23,7 +25,7 @@ public class Main {
             folderPath = sc.nextLine();
 
             folderPath = checkPath(folderPath);
-        } while(folderPath.equals(""));
+        } while (folderPath.equals(""));
 
         List<String> pptFiles = new ArrayList<>();
         try (Stream<Path> paths = Files.walk(Paths.get(folderPath))) {
@@ -35,14 +37,30 @@ public class Main {
             e.printStackTrace();
         }
 
-        for(String s : pptFiles) {
+        for (String s : pptFiles) {
             String fileExt = getExtension(s);
-            if(fileExt.equals("pptx") & s.contains("lec")) {
-                FileInputStream inStream = new FileInputStream(s);
-                XMLSlideShow src = new XMLSlideShow(inStream);
 
-                for(XSLFSlide slide : src.getSlides()) {
-                    ppt.createSlide().importContent(slide);
+            Path path = Paths.get("Desktop/pptxFiles");
+
+            //java.nio.file.Files;
+            Files.createDirectories(path);
+
+            if (s.contains("lec")) {
+                if (fileExt.equals("pptx")) {
+                    FileInputStream inStream = new FileInputStream(s);
+                    XMLSlideShow src = new XMLSlideShow(inStream);
+
+                    for (XSLFSlide slide : src.getSlides()) {
+                        ppt.createSlide().importContent(slide);
+                    }
+                } else if (fileExt.equals("ppt")) {
+                    String file = convertFile(s);
+                    FileInputStream inStream = new FileInputStream(file);
+                    XMLSlideShow src = new XMLSlideShow(inStream);
+
+                    for (XSLFSlide slide : src.getSlides()) {
+                        ppt.createSlide().importContent(slide);
+                    }
                 }
             }
         }
@@ -52,7 +70,7 @@ public class Main {
             System.out.println("Select a location to place the file");
             outputLocation = sc.nextLine();
 
-        } while(outputLocation.equals(""));
+        } while (outputLocation.equals(""));
 
         String allLecturesCombined = outputLocation + "/" + "allLecturesCombined.pptx";
 
@@ -68,16 +86,36 @@ public class Main {
         // saving the changes to a file
         ppt.write(out);
         out.close();
+
+        System.out.println("Costel was here!");
+    }
+
+    private static String convertFile(String s) {
+        File file = new File(s);
+
+        // Instantiate a Presentation object that represents a PPTX file
+        Presentation pres = new Presentation(file.getAbsolutePath());
+
+        // Saving the PPTX presentation to PPTX format
+        pres.save(file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(File.separator)) + "/" + removeExtension(file.getName()) + ".pptx", SaveFormat.Pptx);
+
+        return file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(File.separator)) + "/" + removeExtension(file.getName()) + ".pptx";
+    }
+
+    private static String removeExtension(String fileName) {
+        String fileNameWithOutExt = fileName.replaceFirst("[.][^.]+$", "");
+
+        return fileNameWithOutExt;
     }
 
     private static String checkPath(String path) {
         File file = new File(path);
-        if(!file.exists()) {
+        if (!file.exists()) {
             System.out.println("This folder does not exist");
             return "";
         }
 
-        if(!file.isDirectory()) {
+        if (!file.isDirectory()) {
             System.out.println("This is a file, not a folder.");
             return "";
         }
@@ -90,7 +128,7 @@ public class Main {
 
         int i = s.lastIndexOf('.');
         if (i > 0) {
-            extension = s.substring(i+1);
+            extension = s.substring(i + 1);
         }
 
         return extension;
