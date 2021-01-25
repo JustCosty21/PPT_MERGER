@@ -25,6 +25,12 @@ import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.pdf.PdfCopy;
+import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.PdfSmartCopy;
+
 public class GUI extends Shell {
     private final Text text;
     private final Text text_1;
@@ -125,6 +131,21 @@ public class GUI extends Shell {
         btnMergePptx.setText("Merge PPT(X)");
 
         Button btnMergePdf = new Button(this, SWT.NONE);
+        btnMergePdf.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseDown(MouseEvent e) {
+                if(text_1.getText().isBlank() || text_2.getText().isBlank()) {
+                    JOptionPane.showMessageDialog(null, "Please select a folder first!",
+                            "Hey!", JOptionPane.ERROR_MESSAGE);
+                    return ;
+                }
+                try {
+                    mergePDF(text_1.getText(), text_2.getText());
+                } catch (DocumentException | IOException documentException) {
+                    documentException.printStackTrace();
+                }
+            }
+        });
         btnMergePdf.setText("Merge PDF");
         btnMergePdf.setBounds(283, 213, 102, 30);
 
@@ -270,5 +291,26 @@ public class GUI extends Shell {
         }
 
         return extension;
+    }
+
+    private void mergePDF(String dirLoc, String outputLoc) throws DocumentException, IOException {
+        File dir = new File(dirLoc);
+        File[] filesToMerge = dir.listFiles((file, fileName) -> {
+            //System.out.println(fileName);
+            return fileName.endsWith(".pdf");
+        });
+        Document document = new Document();
+        FileOutputStream outputStream = new FileOutputStream(outputLoc + "/pdfCombined.pdf");
+        PdfCopy copy = new PdfSmartCopy(document, outputStream);
+        document.open();
+
+        assert filesToMerge != null;
+        for (File inFile : filesToMerge) {
+            System.out.println(inFile.getCanonicalPath());
+            PdfReader reader = new PdfReader(inFile.getCanonicalPath());
+            copy.addDocument(reader);
+            reader.close();
+        }
+        document.close();
     }
 }
